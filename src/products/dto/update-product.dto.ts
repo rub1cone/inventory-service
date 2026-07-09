@@ -1,4 +1,4 @@
-// Данные для обновления товара (все поля необязательные)
+// Данные для обновления товара
 export class UpdateProductDto {
     name?: string;
     description?: string;

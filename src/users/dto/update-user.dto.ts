@@ -1,4 +1,4 @@
-// Данные для обновления пользователя (все поля необязательные)
+// Данные для обновления пользователя
 export class UpdateUserDto {
     username?: string;
     password?: string;

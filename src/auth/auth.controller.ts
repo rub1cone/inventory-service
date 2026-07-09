@@ -8,13 +8,13 @@ import { Public } from './decorators/public.decorator';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Public() // Этот эндпоинт доступен без токена
+  @Public() // Без токена
   @Post('register')
   async register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
-  @Public() // Этот эндпоинт доступен без токена
+  @Public() // Без токена
   @Post('login')
   async login(@Body() dto: LoginDto) {
     return this.authService.login(dto);

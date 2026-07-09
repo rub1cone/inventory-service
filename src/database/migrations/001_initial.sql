@@ -1,13 +1,11 @@
--- 001_initial.sql
--- Начальная миграция: создаём основные таблицы
-
+-- Заменить на TIMESTAMPTZ ДЛЯ СМЕНЫ ПОЯСОВ И Т.Д.
 -- Таблица пользователей
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
-    role VARCHAR(20) NOT NULL DEFAULT 'warehouse', -- admin, warehouse, accounting
+    role VARCHAR(20) NOT NULL DEFAULT 'warehouse', 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -46,6 +44,6 @@ CREATE TABLE IF NOT EXISTS warehouse_settings (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Вставляем настройки по умолчанию
+-- По умолчанию
 INSERT INTO warehouse_settings (max_capacity) VALUES (10000)
 ON CONFLICT DO NOTHING;

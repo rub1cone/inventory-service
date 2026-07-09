@@ -34,7 +34,7 @@ export class ProductsService {
 
   // Создать новый товар
   async create(dto: CreateProductDto) {
-    // Проверяем, нет ли товара с таким SKU (артикулом)
+    // Проверяем, нет ли товара с таким артикулом
     const existingProduct = await this.db
       .selectFrom('products')
       .selectAll()

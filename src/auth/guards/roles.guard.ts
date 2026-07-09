@@ -1,4 +1,4 @@
-// Защита по ролям - проверяет, что у пользователя нужная роль
+// Проверяет, что у пользователя нужная роль
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
@@ -19,7 +19,7 @@ export class RolesGuard implements CanActivate {
     // Получаем пользователя из запроса (его добавил JwtAuthGuard)
     const request = context.switchToHttp().getRequest();
     const user = request.user;
-    // В начале метода canActivate добавь:
+    // Потом доделаю (ШТУКА НЕ РАБОТАЕТ ДЛЯ СКЛАДА)
     console.log('RolesGuard вызван!');
     console.log('requiredRoles:', requiredRoles);
     console.log('user:', user);

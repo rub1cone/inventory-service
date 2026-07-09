@@ -1,8 +1,6 @@
-// src/config/database.config.ts
-// Здесь мы настраиваем подключение к PostgreSQL
 import * as dotenv from 'dotenv';
 
-// Загружаем переменные из .env файла
+// Загружаем из .env 
 dotenv.config();
 
 export const databaseConfig = {

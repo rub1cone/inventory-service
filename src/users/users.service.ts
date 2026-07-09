@@ -1,20 +1,35 @@
+// src/users/users.service.ts
 // Бизнес-логика управления пользователями
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { Kysely } from 'kysely';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Database } from '../database/database.provider';
 
 @Injectable()
 export class UsersService {
-  constructor(@Inject('DATABASE') private readonly db: Kysely<any>) {}
+  constructor(@Inject('DATABASE') private readonly db: Kysely<Database>) {}
 
-  // Получить всех пользователей (без паролей!)
+  // Получить всех пользователей (с названиями ролей)
   async findAll() {
     return this.db
       .selectFrom('users')
-      .select(['id', 'username', 'email', 'role', 'created_at', 'updated_at'])
+      .innerJoin('roles', 'roles.id', 'users.role_id')
+      .select([
+        'users.id',
+        'users.username',
+        'users.email',
+        'users.role_id',
+        'roles.name as role',
+        'users.created_at',
+        'users.updated_at',
+      ])
       .execute();
   }
 
@@ -22,8 +37,17 @@ export class UsersService {
   async findById(id: number) {
     const user = await this.db
       .selectFrom('users')
-      .select(['id', 'username', 'email', 'role', 'created_at', 'updated_at'])
-      .where('id', '=', id)
+      .innerJoin('roles', 'roles.id', 'users.role_id')
+      .select([
+        'users.id',
+        'users.username',
+        'users.email',
+        'users.role_id',
+        'roles.name as role',
+        'users.created_at',
+        'users.updated_at',
+      ])
+      .where('users.id', '=', id)
       .executeTakeFirst();
 
     if (!user) {
@@ -33,9 +57,9 @@ export class UsersService {
     return user;
   }
 
-  // Создать нового пользователя (только админ)
+  // Создать нового пользователя
   async create(dto: CreateUserDto) {
-    // Проверяем, нет ли уже такого пользователя
+    // Проверяем уникальность username
     const existingUser = await this.db
       .selectFrom('users')
       .selectAll()
@@ -43,7 +67,20 @@ export class UsersService {
       .executeTakeFirst();
 
     if (existingUser) {
-      throw new ConflictException('Пользователь с таким именем уже существует');
+      throw new ConflictException(
+        'Пользователь с таким именем уже существует',
+      );
+    }
+
+    // Находим роль по названию
+    const role = await this.db
+      .selectFrom('roles')
+      .select('id')
+      .where('name', '=', dto.role)
+      .executeTakeFirst();
+
+    if (!role) {
+      throw new NotFoundException(`Роль "${dto.role}" не найдена`);
     }
 
     // Хешируем пароль
@@ -56,12 +93,12 @@ export class UsersService {
         username: dto.username,
         password_hash: passwordHash,
         email: dto.email,
-        role: dto.role,
-      })
-      .returning(['id', 'username', 'email', 'role'])
+        role_id: role.id,
+      } as any) // as any чтобы обойти строгую типизацию для id, created_at, updated_at
+      .returning(['id', 'username', 'email', 'role_id'])
       .executeTakeFirst();
 
-    return result;
+    return { ...result, role: dto.role };
   }
 
   // Обновить пользователя
@@ -78,23 +115,32 @@ export class UsersService {
     }
 
     // Готовим данные для обновления
-    const updateData: any = {};
-    
+    const updateData: any = { updated_at: new Date() };
+
     if (dto.username) updateData.username = dto.username;
     if (dto.email) updateData.email = dto.email;
-    if (dto.role) updateData.role = dto.role;
     if (dto.password) {
       updateData.password_hash = await bcrypt.hash(dto.password, 10);
     }
-    
-    updateData.updated_at = new Date();
+    if (dto.role) {
+      const role = await this.db
+        .selectFrom('roles')
+        .select('id')
+        .where('name', '=', dto.role)
+        .executeTakeFirst();
+
+      if (!role) {
+        throw new NotFoundException(`Роль "${dto.role}" не найдена`);
+      }
+      updateData.role_id = role.id;
+    }
 
     // Обновляем пользователя
     const result = await this.db
       .updateTable('users')
       .set(updateData)
       .where('id', '=', id)
-      .returning(['id', 'username', 'email', 'role'])
+      .returning(['id', 'username', 'email', 'role_id'])
       .executeTakeFirst();
 
     return result;
@@ -112,10 +158,7 @@ export class UsersService {
       throw new NotFoundException('Пользователь не найден');
     }
 
-    await this.db
-      .deleteFrom('users')
-      .where('id', '=', id)
-      .execute();
+    await this.db.deleteFrom('users').where('id', '=', id).execute();
 
     return { message: 'Пользователь удалён' };
   }

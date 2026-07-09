@@ -1,4 +1,4 @@
-// Защита эндпоинтов - проверяет JWT токен
+// Проверяет JWT токен
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import * as jwt from 'jsonwebtoken';
@@ -26,8 +26,6 @@ export class JwtAuthGuard implements CanActivate {
     if (!authHeader) {
       throw new UnauthorizedException('Токен не предоставлен');
     }
-
-    // Ожидаем формат: "Bearer <токен>"
     const [bearer, token] = authHeader.split(' ');
 
     if (bearer !== 'Bearer' || !token) {

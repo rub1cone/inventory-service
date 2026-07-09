@@ -2,6 +2,6 @@
 export class CreateTransactionDto {
     product_id: number;
     quantity: number;
-    transaction_date: string; // Формат: 'YYYY-MM-DD'
+    transaction_date: string; 
     comment?: string;
   }

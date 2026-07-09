@@ -1,11 +1,13 @@
+// src/warehouse/warehouse.service.ts
 // Бизнес-логика настроек склада
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { Kysely } from 'kysely';
+import { Database } from '../database/database.provider';
 
 @Injectable()
 export class WarehouseService {
-  constructor(@Inject('DATABASE') private readonly db: Kysely<any>) {}
+  constructor(@Inject('DATABASE') private readonly db: Kysely<Database>) {}
 
   // Получить настройки склада
   async getSettings() {
@@ -23,19 +25,24 @@ export class WarehouseService {
     return settings;
   }
 
-  // Обновить вместимость склада
-  async updateCapacity(maxCapacity: number) {
+  // Обновить вместимость склада (теперь с указанием кто изменил)
+  async updateCapacity(maxCapacity: number, userId: number) {
     const settings = await this.getSettings();
 
     await this.db
       .updateTable('warehouse_settings')
       .set({
         max_capacity: maxCapacity,
+        updated_by: userId, // Записываем, кто изменил
         updated_at: new Date(),
       })
       .where('id', '=', settings.id)
       .execute();
 
-    return { max_capacity: maxCapacity, message: 'Вместимость склада обновлена' };
+    return {
+      max_capacity: maxCapacity,
+      updated_by: userId,
+      message: 'Вместимость склада обновлена',
+    };
   }
 }

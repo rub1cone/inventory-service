@@ -1,5 +1,10 @@
+// src/auth/auth.service.ts
 // Бизнес-логика авторизации
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+} from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { Kysely } from 'kysely';
 import * as bcrypt from 'bcrypt';
@@ -7,10 +12,11 @@ import * as jwt from 'jsonwebtoken';
 import { jwtConfig } from '../config/jwt.config';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { Database } from '../database/database.provider';
 
 @Injectable()
 export class AuthService {
-  constructor(@Inject('DATABASE') private readonly db: Kysely<any>) {}
+  constructor(@Inject('DATABASE') private readonly db: Kysely<Database>) {}
 
   // Регистрация нового пользователя
   async register(dto: RegisterDto) {
@@ -22,22 +28,31 @@ export class AuthService {
       .executeTakeFirst();
 
     if (existingUser) {
-      throw new ConflictException('Пользователь с таким именем уже существует');
+      throw new ConflictException(
+        'Пользователь с таким именем уже существует',
+      );
     }
 
-    // Хешируем пароль (10 - количество раундов соли)
+    // Хешируем пароль
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
-    // Создаём пользователя (по умолчанию роль 'warehouse')
+    // Получаем id роли 'warehouse' (по умолчанию)
+    const warehouseRole = await this.db
+      .selectFrom('roles')
+      .select('id')
+      .where('name', '=', 'warehouse')
+      .executeTakeFirst();
+
+    // Создаём пользователя
     const result = await this.db
       .insertInto('users')
       .values({
         username: dto.username,
         password_hash: passwordHash,
         email: dto.email,
-        role: 'warehouse', // обычный пользователь склада по умолчанию
-      })
-      .returning(['id', 'username', 'email', 'role'])
+        role_id: warehouseRole!.id,
+      } as any) // as any чтобы обойти строгую типизацию для id, created_at, updated_at
+      .returning(['id', 'username', 'email', 'role_id'])
       .executeTakeFirst();
 
     return result;
@@ -45,11 +60,19 @@ export class AuthService {
 
   // Вход в систему
   async login(dto: LoginDto) {
-    // Ищем пользователя по имени
+    // Ищем пользователя и его роль
     const user = await this.db
       .selectFrom('users')
-      .selectAll()
-      .where('username', '=', dto.username)
+      .innerJoin('roles', 'roles.id', 'users.role_id')
+      .select([
+        'users.id',
+        'users.username',
+        'users.password_hash',
+        'users.email',
+        'users.role_id',
+        'roles.name as role_name',
+      ])
+      .where('users.username', '=', dto.username)
       .executeTakeFirst();
 
     if (!user) {
@@ -57,7 +80,10 @@ export class AuthService {
     }
 
     // Проверяем пароль
-    const isPasswordValid = await bcrypt.compare(dto.password, user.password_hash);
+    const isPasswordValid = await bcrypt.compare(
+      dto.password,
+      user.password_hash,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Неверное имя пользователя или пароль');
     }
@@ -67,10 +93,11 @@ export class AuthService {
       {
         sub: user.id,
         username: user.username,
-        role: user.role,
+        role: user.role_name,
+        role_id: user.role_id,
       },
       jwtConfig.secret,
-      { expiresIn: jwtConfig.expiresIn }
+      { expiresIn: 86400 },
     );
 
     return {
@@ -79,7 +106,7 @@ export class AuthService {
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role,
+        role: user.role_name,
       },
     };
   }
