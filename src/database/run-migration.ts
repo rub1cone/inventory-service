@@ -1,5 +1,3 @@
-// src/database/run-migration.ts
-// Простой способ запустить миграцию через tsx
 import { Kysely, PostgresDialect } from 'kysely';
 import { Pool } from 'pg';
 import { databaseConfig } from '../config/database.config';
@@ -22,13 +20,12 @@ async function runMigration() {
 
   try {
     await up(db);
-    console.log('✅ Все миграции выполнены успешно!');
+    console.log(' Все миграции выполнены успешно');
   } catch (error) {
-    console.error('❌ Ошибка при миграции:', error);
+    console.error(' Ошибка при миграции:', error);
     throw error;
   } finally {
     await db.destroy();
   }
 }
-
 runMigration().catch(() => process.exit(1));

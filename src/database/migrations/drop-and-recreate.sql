@@ -1,4 +1,4 @@
--- Удаляем старые таблицы (осторожно, удалит все данные!)
+-- Удаляем старые таблицы
 DROP TABLE IF EXISTS inventory_transactions CASCADE;
 DROP TABLE IF EXISTS products CASCADE;
 DROP TABLE IF EXISTS users CASCADE;

@@ -1,4 +1,3 @@
-// src/warehouse/warehouse.controller.ts
 import { Controller, Get, Patch, Body, UseGuards, Request } from '@nestjs/common';
 import { WarehouseService } from './warehouse.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';

@@ -1,4 +1,3 @@
-// src/inventory/inventory.service.ts
 // Бизнес-логика складских операций
 import {
   Injectable,
@@ -53,7 +52,7 @@ export class InventoryService {
       throw new NotFoundException('Товар не найден');
     }
 
-    // Получаем id типа 'income'
+    // Получаем id типа ncome
     const typeRecord = await this.db
       .selectFrom('transaction_types')
       .select('id')
@@ -111,7 +110,7 @@ export class InventoryService {
       );
     }
 
-    // Получаем id типа 'expense'
+    // Получаем id типа expense
     const typeRecord = await this.db
       .selectFrom('transaction_types')
       .select('id')
@@ -132,7 +131,7 @@ export class InventoryService {
         quantity: dto.quantity,
         transaction_date: new Date(dto.transaction_date),
         comment: dto.comment || '',
-      } as any) // as any чтобы обойти строгую типизацию для id и created_at
+      } as any) 
       .returningAll()
       .executeTakeFirst();
 

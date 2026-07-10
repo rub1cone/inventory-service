@@ -1,5 +1,4 @@
-// src/database/database.provider.ts
-// Создаём подключение к базе данных через Kysely
+// Создаём подключение к бд через Kysely
 import { Kysely, PostgresDialect } from 'kysely';
 import { Pool } from 'pg';
 import { databaseConfig } from '../config/database.config';
@@ -26,7 +25,7 @@ interface UserTable {
   username: string;
   password_hash: string;
   email: string;
-  role_id: number; // Было role VARCHAR, теперь role_id INTEGER
+  role_id: number; 
   created_at: Date;
   updated_at: Date;
 }
@@ -53,7 +52,7 @@ interface InventoryTransactionTable {
   id: number;
   product_id: number;
   user_id: number;
-  type_id: number; // Было type VARCHAR, теперь type_id INTEGER
+  type_id: number; 
   quantity: number;
   transaction_date: Date;
   comment: string | null;
@@ -63,7 +62,7 @@ interface InventoryTransactionTable {
 interface WarehouseSettingsTable {
   id: number;
   max_capacity: number;
-  updated_by: number | null; // Новое поле — кто изменил
+  updated_by: number | null; 
   updated_at: Date;
 }
 

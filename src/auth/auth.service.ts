@@ -1,4 +1,3 @@
-// src/auth/auth.service.ts
 // Бизнес-логика авторизации
 import {
   Injectable,
@@ -32,11 +31,9 @@ export class AuthService {
         'Пользователь с таким именем уже существует',
       );
     }
-
     // Хешируем пароль
     const passwordHash = await bcrypt.hash(dto.password, 10);
-
-    // Получаем id роли 'warehouse' (по умолчанию)
+    // Получаем id роли warehouse (по умолчанию)
     const warehouseRole = await this.db
       .selectFrom('roles')
       .select('id')

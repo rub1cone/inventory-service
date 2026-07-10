@@ -1,21 +1,16 @@
-// 001_initial_schema.ts
-// Первая миграция: удаляем старые таблицы и создаём новые
 import { Kysely, sql } from 'kysely';
 
 export async function up(db: Kysely<any>): Promise<void> {
-  // Сначала удаляем старые таблицы (если они есть)
+  // Удаляем старые таблицы 
   await db.schema.dropTable('inventory_transactions').ifExists().execute();
   await db.schema.dropTable('products').ifExists().execute();
   await db.schema.dropTable('users').ifExists().execute();
   await db.schema.dropTable('warehouse_settings').ifExists().execute();
   await db.schema.dropTable('transaction_types').ifExists().execute();
   await db.schema.dropTable('roles').ifExists().execute();
+  console.log('  Старые таблицы удалены');
 
-  console.log('🗑️  Старые таблицы удалены');
-
-  // ========================================
-  // 1. Таблица ролей (справочник)
-  // ========================================
+  // Таблица ролей
   await db.schema
     .createTable('roles')
     .addColumn('id', 'serial', (col) => col.primaryKey())
@@ -32,12 +27,10 @@ export async function up(db: Kysely<any>): Promise<void> {
       { name: 'accounting', description: 'Сотрудник бухгалтерии' },
     ])
     .execute();
+  console.log(' Таблица roles создана');
 
-  console.log('✅ Таблица roles создана');
 
-  // ========================================
-  // 2. Таблица пользователей
-  // ========================================
+  //  Таблица пользователей
   await db.schema
     .createTable('users')
     .addColumn('id', 'serial', (col) => col.primaryKey())
@@ -54,12 +47,9 @@ export async function up(db: Kysely<any>): Promise<void> {
       col.defaultTo(sql`now()`).notNull()
     )
     .execute();
+  console.log(' Таблица users создана');
 
-  console.log('✅ Таблица users создана');
-
-  // ========================================
-  // 3. Таблица товаров
-  // ========================================
+  //  Таблица товаров
   await db.schema
     .createTable('products')
     .addColumn('id', 'serial', (col) => col.primaryKey())
@@ -70,7 +60,6 @@ export async function up(db: Kysely<any>): Promise<void> {
       col.notNull().defaultTo(0)
     )
     .addColumn('min_quantity', 'integer', (col) => col.defaultTo(0))
-    // Используем sql для numeric типа
     .addColumn('price', sql`numeric(10,2)`, (col) =>
       col.notNull().defaultTo(0)
     )
@@ -81,12 +70,10 @@ export async function up(db: Kysely<any>): Promise<void> {
       col.defaultTo(sql`now()`).notNull()
     )
     .execute();
+  console.log(' Таблица products создана');
 
-  console.log('✅ Таблица products создана');
 
-  // ========================================
-  // 4. Таблица типов операций (справочник)
-  // ========================================
+  //  Таблица типов операций 
   await db.schema
     .createTable('transaction_types')
     .addColumn('id', 'serial', (col) => col.primaryKey())
@@ -101,12 +88,9 @@ export async function up(db: Kysely<any>): Promise<void> {
       { name: 'expense', description: 'Убыль товара со склада' },
     ])
     .execute();
+  console.log(' Таблица transaction_types создана');
 
-  console.log('✅ Таблица transaction_types создана');
-
-  // ========================================
-  // 5. Таблица складских операций
-  // ========================================
+  // Таблица складских операций
   await db.schema
     .createTable('inventory_transactions')
     .addColumn('id', 'serial', (col) => col.primaryKey())
@@ -126,12 +110,10 @@ export async function up(db: Kysely<any>): Promise<void> {
       col.defaultTo(sql`now()`).notNull()
     )
     .execute();
+  console.log(' Таблица inventory_transactions создана');
 
-  console.log('✅ Таблица inventory_transactions создана');
 
-  // ========================================
-  // 6. Таблица настроек склада (связана с users)
-  // ========================================
+  // Таблица настроек склада
   await db.schema
     .createTable('warehouse_settings')
     .addColumn('id', 'serial', (col) => col.primaryKey())
@@ -151,10 +133,9 @@ export async function up(db: Kysely<any>): Promise<void> {
     .insertInto('warehouse_settings')
     .values({ max_capacity: 10000 })
     .execute();
-
-  console.log('✅ Таблица warehouse_settings создана');
+  console.log(' Таблица warehouse_settings создана');
   console.log('');
-  console.log('🎉 Миграция 001 успешно выполнена!');
+  console.log(' Миграция 001  выполнена');
 }
 
 // Функция отката
@@ -165,6 +146,5 @@ export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable('products').ifExists().execute();
   await db.schema.dropTable('users').ifExists().execute();
   await db.schema.dropTable('roles').ifExists().execute();
-
-  console.log('✅ Миграция 001 откатана: все таблицы удалены');
+  console.log(' Миграция 001 откатана: все таблицы удалены');
 }

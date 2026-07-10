@@ -1,4 +1,3 @@
-// src/users/users.service.ts
 // Бизнес-логика управления пользователями
 import {
   Injectable,
@@ -33,7 +32,7 @@ export class UsersService {
       .execute();
   }
 
-  // Получить пользователя по ID
+  // Получить пользователя по id
   async findById(id: number) {
     const user = await this.db
       .selectFrom('users')
@@ -82,10 +81,8 @@ export class UsersService {
     if (!role) {
       throw new NotFoundException(`Роль "${dto.role}" не найдена`);
     }
-
     // Хешируем пароль
     const passwordHash = await bcrypt.hash(dto.password, 10);
-
     // Создаём пользователя
     const result = await this.db
       .insertInto('users')
@@ -94,7 +91,7 @@ export class UsersService {
         password_hash: passwordHash,
         email: dto.email,
         role_id: role.id,
-      } as any) // as any чтобы обойти строгую типизацию для id, created_at, updated_at
+      } as any) 
       .returning(['id', 'username', 'email', 'role_id'])
       .executeTakeFirst();
 
@@ -145,7 +142,6 @@ export class UsersService {
 
     return result;
   }
-
   // Удалить пользователя
   async remove(id: number) {
     const user = await this.db
@@ -157,9 +153,7 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('Пользователь не найден');
     }
-
     await this.db.deleteFrom('users').where('id', '=', id).execute();
-
     return { message: 'Пользователь удалён' };
   }
 }

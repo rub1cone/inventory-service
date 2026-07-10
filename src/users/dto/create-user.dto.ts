@@ -3,5 +3,5 @@ export class CreateUserDto {
   username: string;
   password: string;
   email: string;
-  role: string; // 'admin', 'warehouse', 'accounting'
+  role: string; // admin, warehouse, accounting
 }

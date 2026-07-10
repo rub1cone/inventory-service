@@ -17,7 +17,7 @@ export class ProductsService {
       .execute();
   }
 
-  // Получить товар по ID
+  // Получить товар по id
   async findById(id: number) {
     const product = await this.db
       .selectFrom('products')
