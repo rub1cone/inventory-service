@@ -1,4 +1,4 @@
-// Бизнес-логика складских операций
+// Логика складских операций
 import {
   Injectable,
   NotFoundException,
@@ -12,7 +12,6 @@ import { Database } from '../database/database.provider';
 @Injectable()
 export class InventoryService {
   constructor(@Inject('DATABASE') private readonly db: Kysely<Database>) {}
-
   // Получить все операции (с названиями товаров, пользователей и типов)
   async findAllTransactions() {
     return this.db
@@ -38,7 +37,6 @@ export class InventoryService {
       .orderBy('inventory_transactions.created_at', 'desc')
       .execute();
   }
-
   // Зарегистрировать приход товара
   async registerIncome(userId: number, dto: CreateTransactionDto) {
     // Проверяем, существует ли товар
@@ -51,7 +49,6 @@ export class InventoryService {
     if (!product) {
       throw new NotFoundException('Товар не найден');
     }
-
     // Получаем id типа ncome
     const typeRecord = await this.db
       .selectFrom('transaction_types')
@@ -62,7 +59,6 @@ export class InventoryService {
     if (!typeRecord) {
       throw new NotFoundException('Тип операции "income" не найден');
     }
-
     // Создаём запись о приходе
     const transaction = await this.db
       .insertInto('inventory_transactions')
@@ -76,7 +72,6 @@ export class InventoryService {
       } as any) // as any чтобы обойти строгую типизацию для id и created_at
       .returningAll()
       .executeTakeFirst();
-
     // Обновляем количество товара
     await this.db
       .updateTable('products')
@@ -89,7 +84,6 @@ export class InventoryService {
 
     return transaction;
   }
-
   // Зарегистрировать убыль товара
   async registerExpense(userId: number, dto: CreateTransactionDto) {
     // Проверяем, существует ли товар
@@ -98,18 +92,15 @@ export class InventoryService {
       .selectAll()
       .where('id', '=', dto.product_id)
       .executeTakeFirst();
-
     if (!product) {
       throw new NotFoundException('Товар не найден');
     }
-
     // Проверяем, достаточно ли товара
     if (product.current_quantity < dto.quantity) {
       throw new BadRequestException(
         `Недостаточно товара. Доступно: ${product.current_quantity}, запрошено: ${dto.quantity}`,
       );
     }
-
     // Получаем id типа expense
     const typeRecord = await this.db
       .selectFrom('transaction_types')
@@ -120,7 +111,6 @@ export class InventoryService {
     if (!typeRecord) {
       throw new NotFoundException('Тип операции "expense" не найден');
     }
-
     // Создаём запись об убыли
     const transaction = await this.db
       .insertInto('inventory_transactions')
@@ -134,7 +124,6 @@ export class InventoryService {
       } as any) 
       .returningAll()
       .executeTakeFirst();
-
     // Обновляем количество товара
     await this.db
       .updateTable('products')
@@ -144,7 +133,6 @@ export class InventoryService {
       })
       .where('id', '=', dto.product_id)
       .execute();
-
     return transaction;
   }
 }
