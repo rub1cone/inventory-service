@@ -1,4 +1,3 @@
-// Настройки  токенов 
 import * as dotenv from 'dotenv';
 import { Kysely } from 'kysely';
 

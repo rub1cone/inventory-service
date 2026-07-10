@@ -1,4 +1,4 @@
-// Бизнес-логика авторизации
+// Бизнес-логика
 import {
   Injectable,
   UnauthorizedException,
@@ -16,7 +16,6 @@ import { Database } from '../database/database.provider';
 @Injectable()
 export class AuthService {
   constructor(@Inject('DATABASE') private readonly db: Kysely<Database>) {}
-
   // Регистрация нового пользователя
   async register(dto: RegisterDto) {
     // Проверяем, нет ли уже такого пользователя
@@ -25,7 +24,6 @@ export class AuthService {
       .selectAll()
       .where('username', '=', dto.username)
       .executeTakeFirst();
-
     if (existingUser) {
       throw new ConflictException(
         'Пользователь с таким именем уже существует',
@@ -39,7 +37,6 @@ export class AuthService {
       .select('id')
       .where('name', '=', 'warehouse')
       .executeTakeFirst();
-
     // Создаём пользователя
     const result = await this.db
       .insertInto('users')
@@ -54,7 +51,6 @@ export class AuthService {
 
     return result;
   }
-
   // Вход в систему
   async login(dto: LoginDto) {
     // Ищем пользователя и его роль
@@ -71,11 +67,9 @@ export class AuthService {
       ])
       .where('users.username', '=', dto.username)
       .executeTakeFirst();
-
     if (!user) {
       throw new UnauthorizedException('Неверное имя пользователя или пароль');
     }
-
     // Проверяем пароль
     const isPasswordValid = await bcrypt.compare(
       dto.password,
@@ -84,8 +78,7 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Неверное имя пользователя или пароль');
     }
-
-    // Создаём JWT токен
+    // Создаём токен
     const token = jwt.sign(
       {
         sub: user.id,
@@ -96,7 +89,6 @@ export class AuthService {
       jwtConfig.secret,
       { expiresIn: 86400 },
     );
-
     return {
       access_token: token,
       user: {

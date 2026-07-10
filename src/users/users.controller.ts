@@ -1,4 +1,3 @@
-// Обработка HTTP запросов для пользователей
 import { Controller, Get, Post, Patch, Delete, Param, Body } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';

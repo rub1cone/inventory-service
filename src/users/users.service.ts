@@ -1,4 +1,4 @@
-// Бизнес-логика управления пользователями
+// Управление пользователями
 import {
   Injectable,
   NotFoundException,
@@ -14,8 +14,7 @@ import { Database } from '../database/database.provider';
 @Injectable()
 export class UsersService {
   constructor(@Inject('DATABASE') private readonly db: Kysely<Database>) {}
-
-  // Получить всех пользователей (с названиями ролей)
+  // Получить всех пользователей(с названиями ролей)
   async findAll() {
     return this.db
       .selectFrom('users')
@@ -31,7 +30,6 @@ export class UsersService {
       ])
       .execute();
   }
-
   // Получить пользователя по id
   async findById(id: number) {
     const user = await this.db
@@ -48,14 +46,12 @@ export class UsersService {
       ])
       .where('users.id', '=', id)
       .executeTakeFirst();
-
     if (!user) {
       throw new NotFoundException('Пользователь не найден');
     }
 
     return user;
   }
-
   // Создать нового пользователя
   async create(dto: CreateUserDto) {
     // Проверяем уникальность username
@@ -70,14 +66,12 @@ export class UsersService {
         'Пользователь с таким именем уже существует',
       );
     }
-
     // Находим роль по названию
     const role = await this.db
       .selectFrom('roles')
       .select('id')
       .where('name', '=', dto.role)
       .executeTakeFirst();
-
     if (!role) {
       throw new NotFoundException(`Роль "${dto.role}" не найдена`);
     }
@@ -97,7 +91,6 @@ export class UsersService {
 
     return { ...result, role: dto.role };
   }
-
   // Обновить пользователя
   async update(id: number, dto: UpdateUserDto) {
     // Проверяем, существует ли пользователь
@@ -106,11 +99,9 @@ export class UsersService {
       .selectAll()
       .where('id', '=', id)
       .executeTakeFirst();
-
     if (!user) {
       throw new NotFoundException('Пользователь не найден');
     }
-
     // Готовим данные для обновления
     const updateData: any = { updated_at: new Date() };
 
@@ -131,7 +122,6 @@ export class UsersService {
       }
       updateData.role_id = role.id;
     }
-
     // Обновляем пользователя
     const result = await this.db
       .updateTable('users')
@@ -149,7 +139,6 @@ export class UsersService {
       .selectAll()
       .where('id', '=', id)
       .executeTakeFirst();
-
     if (!user) {
       throw new NotFoundException('Пользователь не найден');
     }

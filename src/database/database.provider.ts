@@ -1,4 +1,4 @@
-// Создаём подключение к бд через Kysely
+// Создаём подключение к бд
 import { Kysely, PostgresDialect } from 'kysely';
 import { Pool } from 'pg';
 import { databaseConfig } from '../config/database.config';

@@ -1,4 +1,4 @@
-// Бизнес-логика настроек склада
+// Настройки склада
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { Kysely } from 'kysely';
@@ -19,13 +19,11 @@ export class WarehouseService {
     if (!settings) {
       throw new NotFoundException('Настройки склада не найдены');
     }
-
     return settings;
   }
   // Обновить вместимость склада
   async updateCapacity(maxCapacity: number, userId: number) {
     const settings = await this.getSettings();
-
     await this.db
       .updateTable('warehouse_settings')
       .set({
@@ -35,7 +33,6 @@ export class WarehouseService {
       })
       .where('id', '=', settings.id)
       .execute();
-
     return {
       max_capacity: maxCapacity,
       updated_by: userId,

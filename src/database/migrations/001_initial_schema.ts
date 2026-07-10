@@ -1,7 +1,6 @@
 import { Kysely, sql } from 'kysely';
 
 export async function up(db: Kysely<any>): Promise<void> {
-  // Удаляем старые таблицы 
   await db.schema.dropTable('inventory_transactions').ifExists().execute();
   await db.schema.dropTable('products').ifExists().execute();
   await db.schema.dropTable('users').ifExists().execute();
@@ -147,4 +146,4 @@ export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable('users').ifExists().execute();
   await db.schema.dropTable('roles').ifExists().execute();
   console.log(' Миграция 001 откатана: все таблицы удалены');
-}
+} 

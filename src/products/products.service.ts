@@ -1,4 +1,4 @@
-// Бизнес-логика управления товарами
+// Управление товарами
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { Kysely } from 'kysely';
@@ -8,7 +8,6 @@ import { UpdateProductDto } from './dto/update-product.dto';
 @Injectable()
 export class ProductsService {
   constructor(@Inject('DATABASE') private readonly db: Kysely<any>) {}
-
   // Получить все товары
   async findAll() {
     return this.db
@@ -16,7 +15,6 @@ export class ProductsService {
       .selectAll()
       .execute();
   }
-
   // Получить товар по id
   async findById(id: number) {
     const product = await this.db
@@ -24,14 +22,11 @@ export class ProductsService {
       .selectAll()
       .where('id', '=', id)
       .executeTakeFirst();
-
     if (!product) {
       throw new NotFoundException('Товар не найден');
     }
-
     return product;
   }
-
   // Создать новый товар
   async create(dto: CreateProductDto) {
     // Проверяем, нет ли товара с таким артикулом
@@ -40,11 +35,9 @@ export class ProductsService {
       .selectAll()
       .where('sku', '=', dto.sku)
       .executeTakeFirst();
-
     if (existingProduct) {
       throw new ConflictException('Товар с таким артикулом уже существует');
     }
-
     const result = await this.db
       .insertInto('products')
       .values({
@@ -57,14 +50,11 @@ export class ProductsService {
       })
       .returningAll()
       .executeTakeFirst();
-
     return result;
   }
-
   // Обновить товар
   async update(id: number, dto: UpdateProductDto) {
     const product = await this.findById(id);
-
     const updateData: any = {};
     if (dto.name) updateData.name = dto.name;
     if (dto.description !== undefined) updateData.description = dto.description;
@@ -73,26 +63,21 @@ export class ProductsService {
     if (dto.min_quantity !== undefined) updateData.min_quantity = dto.min_quantity;
     if (dto.price !== undefined) updateData.price = dto.price;
     updateData.updated_at = new Date();
-
     const result = await this.db
       .updateTable('products')
       .set(updateData)
       .where('id', '=', id)
       .returningAll()
       .executeTakeFirst();
-
     return result;
   }
-
   // Удалить товар
   async remove(id: number) {
     await this.findById(id);
-
     await this.db
       .deleteFrom('products')
       .where('id', '=', id)
       .execute();
-
     return { message: 'Товар удалён' };
   }
 }

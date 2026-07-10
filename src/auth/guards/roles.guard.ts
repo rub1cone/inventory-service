@@ -22,7 +22,6 @@ export class RolesGuard implements CanActivate {
     if (!user) {
       throw new ForbiddenException('Пользователь не авторизован');
     }
-
     // Проверяем, есть ли у пользователя нужная роль
     const hasRole = requiredRoles.includes(user.role);
     if (!hasRole) {

@@ -1,4 +1,3 @@
-// Обработка HTTP запросов для товаров
 import { Controller, Get, Post, Patch, Delete, Param, Body } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';

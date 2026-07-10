@@ -1,4 +1,4 @@
-// Проверяет JWT токен
+// Проверяет токен
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import * as jwt from 'jsonwebtoken';
@@ -19,7 +19,6 @@ export class JwtAuthGuard implements CanActivate {
     if (isPublic) {
       return true; // Пропускаем без проверки токена
     }
-
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers.authorization;
 
@@ -31,7 +30,6 @@ export class JwtAuthGuard implements CanActivate {
     if (bearer !== 'Bearer' || !token) {
       throw new UnauthorizedException('Неверный формат токена');
     }
-
     try {
       // Проверяем и расшифровываем токен
       const payload = jwt.verify(token, jwtConfig.secret);
