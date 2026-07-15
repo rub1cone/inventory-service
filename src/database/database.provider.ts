@@ -1,9 +1,7 @@
-// Создаём подключение к бд
 import { Kysely, PostgresDialect } from 'kysely';
 import { Pool } from 'pg';
 import { databaseConfig } from '../config/database.config';
 
-// Интерфейс базы данных для типизации
 export interface Database {
   roles: RoleTable;
   users: UserTable;

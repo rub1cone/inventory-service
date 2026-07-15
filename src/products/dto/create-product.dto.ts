@@ -1,4 +1,3 @@
-// Данные для создания товара
 export class CreateProductDto {
     name: string;
     description?: string;

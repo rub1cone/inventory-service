@@ -17,7 +17,6 @@ async function runMigration() {
 
   // Импортируем и запускаем миграцию
   const { up } = await import('./migrations/001_initial_schema.js');
-
   try {
     await up(db);
     console.log(' Все миграции выполнены успешно');

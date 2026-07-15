@@ -1,4 +1,3 @@
-// Данные для обновления товара
 export class UpdateProductDto {
     name?: string;
     description?: string;

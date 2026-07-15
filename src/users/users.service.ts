@@ -1,10 +1,10 @@
-// Управление пользователями
 import {
   Injectable,
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
+import { PinoLogger } from 'nestjs-pino';
 import { Kysely } from 'kysely';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -13,9 +13,15 @@ import { Database } from '../database/database.provider';
 
 @Injectable()
 export class UsersService {
-  constructor(@Inject('DATABASE') private readonly db: Kysely<Database>) {}
-  // Получить всех пользователей(с названиями ролей)
+  constructor(
+    @Inject('DATABASE') private readonly db: Kysely<Database>,
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(UsersService.name);
+  }
+
   async findAll() {
+    this.logger.info('Запрос списка всех пользователей');
     return this.db
       .selectFrom('users')
       .innerJoin('roles', 'roles.id', 'users.role_id')
@@ -30,8 +36,9 @@ export class UsersService {
       ])
       .execute();
   }
-  // Получить пользователя по id
+
   async findById(id: number) {
+    this.logger.info(`Запрос пользователя id=${id}`);
     const user = await this.db
       .selectFrom('users')
       .innerJoin('roles', 'roles.id', 'users.role_id')
@@ -46,15 +53,16 @@ export class UsersService {
       ])
       .where('users.id', '=', id)
       .executeTakeFirst();
+
     if (!user) {
       throw new NotFoundException('Пользователь не найден');
     }
-
     return user;
   }
-  // Создать нового пользователя
+
   async create(dto: CreateUserDto) {
-    // Проверяем уникальность username
+    this.logger.info(`Создание пользователя: ${dto.username}, роль: ${dto.role}`);
+
     const existingUser = await this.db
       .selectFrom('users')
       .selectAll()
@@ -62,22 +70,21 @@ export class UsersService {
       .executeTakeFirst();
 
     if (existingUser) {
-      throw new ConflictException(
-        'Пользователь с таким именем уже существует',
-      );
+      this.logger.warn(`Создание отклонено: пользователь ${dto.username} уже существует`);
+      throw new ConflictException('Пользователь с таким именем уже существует');
     }
-    // Находим роль по названию
+
     const role = await this.db
       .selectFrom('roles')
       .select('id')
       .where('name', '=', dto.role)
       .executeTakeFirst();
+
     if (!role) {
       throw new NotFoundException(`Роль "${dto.role}" не найдена`);
     }
-    // Хешируем пароль
+
     const passwordHash = await bcrypt.hash(dto.password, 10);
-    // Создаём пользователя
     const result = await this.db
       .insertInto('users')
       .values({
@@ -85,26 +92,26 @@ export class UsersService {
         password_hash: passwordHash,
         email: dto.email,
         role_id: role.id,
-      } as any) 
+      } as any)
       .returning(['id', 'username', 'email', 'role_id'])
       .executeTakeFirst();
-
+    this.logger.info(`Пользователь ${dto.username} создан (id: ${result!.id})`);
     return { ...result, role: dto.role };
   }
-  // Обновить пользователя
+
   async update(id: number, dto: UpdateUserDto) {
-    // Проверяем, существует ли пользователь
+    this.logger.info(`Обновление пользователя id=${id}`);
+
     const user = await this.db
       .selectFrom('users')
       .selectAll()
       .where('id', '=', id)
       .executeTakeFirst();
+
     if (!user) {
       throw new NotFoundException('Пользователь не найден');
     }
-    // Готовим данные для обновления
     const updateData: any = { updated_at: new Date() };
-
     if (dto.username) updateData.username = dto.username;
     if (dto.email) updateData.email = dto.email;
     if (dto.password) {
@@ -116,13 +123,10 @@ export class UsersService {
         .select('id')
         .where('name', '=', dto.role)
         .executeTakeFirst();
-
-      if (!role) {
-        throw new NotFoundException(`Роль "${dto.role}" не найдена`);
-      }
+      if (!role) throw new NotFoundException(`Роль "${dto.role}" не найдена`);
       updateData.role_id = role.id;
     }
-    // Обновляем пользователя
+
     const result = await this.db
       .updateTable('users')
       .set(updateData)
@@ -130,10 +134,13 @@ export class UsersService {
       .returning(['id', 'username', 'email', 'role_id'])
       .executeTakeFirst();
 
+    this.logger.info(`Пользователь id=${id} обновлён`);
     return result;
   }
-  // Удалить пользователя
+
   async remove(id: number) {
+    this.logger.info(`Удаление пользователя id=${id}`);
+
     const user = await this.db
       .selectFrom('users')
       .selectAll()
@@ -143,6 +150,7 @@ export class UsersService {
       throw new NotFoundException('Пользователь не найден');
     }
     await this.db.deleteFrom('users').where('id', '=', id).execute();
+    this.logger.info(`Пользователь ${user.username} удалён`);
     return { message: 'Пользователь удалён' };
   }
 }
