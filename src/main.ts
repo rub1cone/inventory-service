@@ -1,32 +1,18 @@
-import { Reflector } from '@nestjs/core';
 import { NestFactory } from '@nestjs/core';
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
-import { RolesGuard } from './auth/guards/roles.guard';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter(),
-    {
-      bufferLogs: true, 
-    },
   );
-  // Подключаем Pino логгер
-  app.useLogger(app.get(Logger));
-  // Глобальные guards
-  const reflector = app.get(Reflector);
-  app.useGlobalGuards(
-    new JwtAuthGuard(reflector),
-    new RolesGuard(reflector),
-  );
-  // Настройка Swagger
+
+  // wagger
   const config = new DocumentBuilder()
     .setTitle('Сервис управления запасами')
     .setDescription('API для управления складскими запасами, товарами и пользователями')
@@ -48,14 +34,11 @@ async function bootstrap() {
     .addTag('Складские операции', 'Приход и убыль товаров')
     .addTag('Настройки склада', 'Управление вместимостью склада')
     .build();
-
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
-
   const port = process.env.APP_PORT || 3000;
   await app.listen(port, '0.0.0.0');
   console.log(`Сервер запущен на http://localhost:${port}`);
-  console.log(`Swagger: http://localhost:${port}/api/docs`);
+  console.log(`Swagger документация: http://localhost:${port}/api/docs`);
 }
-
 bootstrap();
